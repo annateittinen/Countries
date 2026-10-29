@@ -1,10 +1,6 @@
 package com.example.countriesapplication.datasource
 
-import android.util.Log
-import com.example.countriesapplication.database.CountryEntity
-import com.example.countriesapplication.model.CountryModel
-import com.example.countriesapplication.utils.TestData
-import com.example.countriesapplication.utils.toCountryEntity
+import com.example.countriesapplication.model.CountryDataState
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,30 +14,27 @@ class CountriesRepository @Inject constructor(
      * If there are no items, then fetch from network and save to db.
      *
      */
-    suspend fun getAll(page: Int = 1): List<CountryModel> {
+    suspend fun getAll(page: Int = 1): CountryDataState {
 
-        // Retrieve items from local DB.
-        var countries: List<CountryModel> = localRepository.getAll()
-        Log.d("test1", "CountriesRepository: localdb: countries size=${countries.size} items=${countries}")
+        var countryDataStateLocalDb: CountryDataState ? = null
+        var countryDataStateRemote: CountryDataState ?= null
 
-        if (countries.isEmpty()) {
+        // Fetch from local DB.
+        countryDataStateLocalDb = localRepository.getAll()
+
+        if (countryDataStateLocalDb is CountryDataState.CountryDataStateSuccess &&
+            countryDataStateLocalDb.countries.isNotEmpty()) {
+            return countryDataStateLocalDb
+        } else {
 
             // Fetch from network.
-            countries = remoteRepository.getAll(page = page)
-            Log.d("test1", "CountriesRepository: called remoteRepository.getAll: countries size=${countries.size} items=${countries}")
-
-            // save to local db
-            if (countries.isNotEmpty()) {
-                val entities: List<CountryEntity> =
-                    countries.mapNotNull {
-                        it.toCountryEntity()
-                    }
-                localRepository.saveAll(entities)
-                Log.d("test1", "CountriesRepository: saved to db")
+            countryDataStateRemote = remoteRepository.getAll(page)
+            if (countryDataStateRemote is CountryDataState.CountryDataStateSuccess) {
+                if (countryDataStateRemote.countries.isNotEmpty()) {
+                    localRepository.saveAll(countryDataStateRemote.countries)
+                }
             }
+            return countryDataStateRemote!!
         }
-
-        Log.d("test1", "CountriesRepository: returning")
-        return countries
     }
 }

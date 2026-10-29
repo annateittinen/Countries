@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.countriesapplication.model.CountryDataState
 import com.example.countriesapplication.model.CountryModel
 import com.example.countriesapplication.viewModels.CountriesViewModel
 
@@ -26,19 +29,19 @@ import com.example.countriesapplication.viewModels.CountriesViewModel
 fun CountriesHomeScreen(modifier: Modifier = Modifier,
                         countriesViewModel: CountriesViewModel = hiltViewModel()
 ) {
-
-    val countries =
-        countriesViewModel.countries.collectAsStateWithLifecycle(emptyList())
+    val countryDataState =
+        countriesViewModel.countryDataState.collectAsStateWithLifecycle(
+            CountryDataState.CountryDataStateSuccess())
 
     LaunchedEffect(Unit) {
         Log.d("test1", "LaunchEffect")
         countriesViewModel.getAll()
     }
 
-    Log.d("test1", "CountriesHomeScreen: countries size=${countries.value.size} items=${countries.value}")
+    Log.d("test1", "CountriesHomeScreen: countries size=${countryDataState.value.countries.size} items=${countryDataState.value.countries}")
 
     CountriesHomeScreenContent(
-        countries.value,
+        countryDataState.value.countries,
         modifier)
 }
 
@@ -52,13 +55,15 @@ fun CountriesHomeScreenContent(
 
     Column(modifier = modifier
         .padding(30.dp)
-        .fillMaxSize()
+        .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
         Text(
-            modifier = modifier.background(color=Color.LightGray),
-            text = "Countries",
-            fontSize = 40.sp
+            modifier = modifier.background(color=Color.LightGray)
+                .width(300.dp),
+            text = "Countries (${countries.size})",
+            fontSize = 30.sp
         )
 
         LazyColumn(
@@ -70,22 +75,21 @@ fun CountriesHomeScreenContent(
             items(countries) {
                 key(it.name) {
                     Column(modifier = modifier
-                        //.size(width = 500.dp, height = 300.dp),
-                        ,verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        .background(color=Color.LightGray)
+                        .width(300.dp)
+                        //.size(width = 300.dp, height = 300.dp)
+                        .fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                        Text(text = it.name, fontSize = 30.sp)
-                        Text(text = it.population.toString(), fontSize = 20.sp)
-                        Text(text = it.region, fontSize = 20.sp)
-                        Text(text = it.capital, fontSize = 20.sp)
-
-                        Text(text = it.language.joinToString(", "), fontSize = 20.sp)
-
-                        Text(text = it.subregion, fontSize = 20.sp)
-
-                        Text(text = it.callingCodes.joinToString(", "), fontSize = 20.sp)
-
-                        Text(text = it.currencies.joinToString(","), fontSize = 20.sp)
-                        Text(text = it.nativeName, fontSize = 20.sp)
+                        Text(text = it.name, fontSize = 20.sp)
+                        Text(text = "population: ${it.population}", fontSize = 15.sp)
+                        Text(text = "region: ${it.region}", fontSize = 15.sp)
+                        Text(text = "capital: ${it.capital}", fontSize = 15.sp)
+                        Text(text = "language: ${it.language.joinToString(", ")}", fontSize = 15.sp)
+                        Text(text = "subregion: ${it.subregion}", fontSize = 15.sp)
+                        Text(text = "callingCodes: ${it.callingCodes.joinToString(", ")}", fontSize = 15.sp)
+                        Text(text = "currencies: ${it.currencies.joinToString(", ")}", fontSize = 15.sp)
+                        Text(text ="nativeName: ${it.nativeName}", fontSize = 15.sp)
                     }
                 }
             }
