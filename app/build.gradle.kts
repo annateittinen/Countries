@@ -57,6 +57,10 @@ dependencies {
     implementation(libs.converter.kotlinx.serialization)
     implementation(libs.kotlinx.serialization.json)
 
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

@@ -26,9 +26,7 @@ class RemoteRepository @Inject constructor(
             try {
 
                 // fetch from network
-                var responseCountries = async {
-                    apiService.getCountries(page)
-                }.await()
+                var responseCountries = apiService.getCountries(page)
 
                 //var responseCountries: ResponseCountries = apiService.getCountries(page)
                 val countries: List<CountryModel> = responseCountries.data.mapNotNull {

@@ -29,5 +29,7 @@ data class CountryEntity(
     @ColumnInfo val language: String,
 
     @ColumnInfo val population: Long,
+
+    @ColumnInfo val alpha2Code: String,
     ) {
 }

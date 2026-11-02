@@ -22,6 +22,7 @@ fun CountryNetworkData.toCountryModel() : CountryModel =
         subregion,
         language,
         population,
+        alpha2Code,
     )
 
 fun CountryEntity.toCountryModel() : CountryModel =
@@ -35,6 +36,7 @@ fun CountryEntity.toCountryModel() : CountryModel =
         subregion,
         language = stringToList(language),
         population,
+        alpha2Code,
     )
 
 fun CountryModel.toCountryEntity() : CountryEntity =
@@ -48,4 +50,5 @@ fun CountryModel.toCountryEntity() : CountryEntity =
         subregion,
         language = listToString(language),
         population,
+        alpha2Code,
     )
