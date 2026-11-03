@@ -24,7 +24,13 @@ object DatabaseModule {
             context,
             CountriesDatabase::class.java,
             "countries_database"
-        ).build()
+        )
+            // App development is in early stage or not in production environment
+            // and do not need to preserve existing data on the device.
+            // Force Room db to drop and recreate the tables
+            // when a version change is detected.
+            .fallbackToDestructiveMigration(true)
+            .build()
     }
 
     @Provides

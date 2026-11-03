@@ -10,5 +10,6 @@ data class CountryModel(
     val subregion: String,
     val language: List<String> = emptyList(),
     val population: Long,
+    val alpha2Code: String,
 ) {
 }

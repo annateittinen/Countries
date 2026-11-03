@@ -2,12 +2,14 @@ package com.example.countriesapplication.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.countriesapplication.datasource.CountriesRepository
-import com.example.countriesapplication.model.CountryModel
+import com.example.countriesapplication.model.CountryDataState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,16 +17,22 @@ class CountriesViewModel @Inject constructor(
     val countriesRepository: CountriesRepository,
 ): ViewModel() {
 
-    private val _countries: MutableStateFlow<List<CountryModel>> = MutableStateFlow(emptyList())
-    val countries: StateFlow<List<CountryModel>> = _countries.asStateFlow()
+    private val _countryDataState: MutableStateFlow<CountryDataState> = MutableStateFlow(
+        CountryDataState.CountryDataStateSuccess())
+    val countryDataState: StateFlow<CountryDataState> = _countryDataState.asStateFlow()
 
-    suspend fun getAll(page: Int = 1) {
+    fun getAll(page: Int = 1) {
 
-        var countriesFromRepo : List<CountryModel> = countriesRepository.getAll(page)
+        viewModelScope.launch {
 
-        Log.d("test1", "CountriesViewModel: called countriesRepository.getAll: countriesFromRepo size=${countriesFromRepo.size} items=${countriesFromRepo}")
+            var countryDataState: CountryDataState = countriesRepository.getAll(page)
 
+            Log.d(
+                "test1",
+                "CountriesViewModel: called countriesRepository.getAll: countriesFromRepo size=${countryDataState.countries.size} items=${countryDataState.countries}"
+            )
 
-        _countries.emit(countriesFromRepo)
+            _countryDataState.emit(countryDataState)
+        }
     }
 }

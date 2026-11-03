@@ -15,6 +15,7 @@ object TestData {
             subregion = "Southern Asia",
             language = listOf("Pashto", "Dari"),
             population = 26023100,
+            alpha2Code = "AF",
         ),
 
         CountryModel(
@@ -27,6 +28,7 @@ object TestData {
             subregion = "Southern Europe",
             language = listOf("Albanian"),
             population = 2893005,
+            alpha2Code = "AL",
         ),
 
         CountryModel(
@@ -39,6 +41,7 @@ object TestData {
             subregion = "Northern Africa",
             language = listOf("Arabic"),
             population = 2893005,
+            alpha2Code = "DZ",
         ),
 
         CountryModel(
@@ -51,6 +54,7 @@ object TestData {
             subregion = "Polynesia",
             language = listOf("English", "Samoan"),
             population = 55519,
+            alpha2Code = "AS",
         ),
 
         CountryModel(
@@ -63,6 +67,7 @@ object TestData {
             subregion = "Southern Europe",
             language = listOf("Catalan"),
             population = 76949,
+            alpha2Code = "AD",
         ),
 
         CountryModel(
@@ -75,6 +80,7 @@ object TestData {
             subregion = "Middle Africa",
             language = listOf("Portuguese"),
             population = 24383301,
+            alpha2Code = "AO",
         ),
 
         CountryModel(
@@ -87,6 +93,7 @@ object TestData {
             subregion = "Caribbean",
             language = listOf("English"),
             population = 24383301,
+            alpha2Code = "AI",
         ),
 
         CountryModel(
@@ -99,6 +106,7 @@ object TestData {
             subregion = "",
             language = listOf("English"),
             population = 1000,
+            alpha2Code = "AQ",
         ),
     )
 

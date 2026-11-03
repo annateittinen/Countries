@@ -13,5 +13,6 @@ data class CountryNetworkData(
     val subregion: String,
     val language: List<String>,
     val population: Long,
+    val alpha2Code: String,
 ) {
 }
