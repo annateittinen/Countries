@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.countriesapplication.datasource.CountriesRepository
 import com.example.countriesapplication.model.CountryDataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,7 @@ class CountriesViewModel @Inject constructor(
 
     fun getAll(page: Int = 1) {
 
-        viewModelScope.launch {
+        viewModelScope.launch(context = Dispatchers.IO) {
 
             var countryDataState: CountryDataState = countriesRepository.getAll(page)
 
