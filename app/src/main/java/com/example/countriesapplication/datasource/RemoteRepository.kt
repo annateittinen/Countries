@@ -5,9 +5,6 @@ import com.example.countriesapplication.model.CountryDataState
 import com.example.countriesapplication.model.CountryModel
 import com.example.countriesapplication.network.CountryApiService
 import com.example.countriesapplication.utils.toCountryModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -22,35 +19,33 @@ class RemoteRepository @Inject constructor(
         var countryDataStateSuccess: CountryDataState.CountryDataStateSuccess? = null
         var countryRemoteDataRetrieveError: CountryDataState.CountryDataStateError? = null
 
-        withContext(Dispatchers.IO) {
-            try {
+        try {
 
-                // fetch from network
-                var responseCountries = apiService.getCountries(page)
+            // fetch from network
+            var responseCountries = apiService.getCountries(page)
 
-                //var responseCountries: ResponseCountries = apiService.getCountries(page)
-                val countries: List<CountryModel> = responseCountries.data.mapNotNull {
-                    it.toCountryModel()
+            //var responseCountries: ResponseCountries = apiService.getCountries(page)
+            val countries: List<CountryModel> = responseCountries.data.mapNotNull {
+                it.toCountryModel()
+            }
+            countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
+
+            Log.d("test1", "RemoteRepository: responseCountries= $responseCountries")
+        } catch (e: Exception) {
+            when (e) {
+                is HttpException -> {
+                    countryRemoteDataRetrieveError =
+                        CountryDataState.CountryDataStateError.CountryDataHttpExceptionError()
                 }
-                countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
 
-                Log.d("test1", "RemoteRepository: responseCountries= $responseCountries")
-            } catch (e: Exception) {
-                when (e) {
-                    is HttpException -> {
-                        countryRemoteDataRetrieveError =
-                            CountryDataState.CountryDataStateError.CountryDataHttpExceptionError()
-                    }
+                is IOException -> {
+                    countryRemoteDataRetrieveError =
+                        CountryDataState.CountryDataStateError.CountryDataIOExceptionError()
+                }
 
-                    is IOException -> {
-                        countryRemoteDataRetrieveError =
-                            CountryDataState.CountryDataStateError.CountryDataIOExceptionError()
-                    }
-
-                    else -> {
-                        countryRemoteDataRetrieveError =
-                            CountryDataState.CountryDataStateError.CountryDataExceptionError()
-                    }
+                else -> {
+                    countryRemoteDataRetrieveError =
+                        CountryDataState.CountryDataStateError.CountryDataExceptionError()
                 }
             }
         }
