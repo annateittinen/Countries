@@ -14,59 +14,65 @@ import com.example.countriesapplication.model.CountryDataState
 import com.example.countriesapplication.model.CountryModel
 import com.example.countriesapplication.utils.toCountryEntity
 import com.example.countriesapplication.utils.toCountryModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class LocalRepository @Inject constructor(val countryDao: CountryDao) {
 
-    suspend fun getAll(): CountryDataState {
-
-        var countryDataStateSuccess: CountryDataState.CountryDataStateSuccess? = null
-        var countryDataStateError: CountryDataState.CountryDataStateError ? = null
+    suspend fun getAll(dispatcher: CoroutineDispatcher = Dispatchers.IO): CountryDataState
+            = withContext(dispatcher) {
 
         try {
             val listCountryEntities: List<CountryEntity> = countryDao.getAll()
             val countries: List<CountryModel> = listCountryEntities.mapNotNull {
                 it.toCountryModel()
             }
-            countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
+            val countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
 
-            Log.d("test1", "LocalRepository: from db: size=${countryDataStateSuccess.countries.size} ; items=${countryDataStateSuccess.countries}")
+            Log.d(
+                "test1",
+                "LocalRepository: from db: size=${countryDataStateSuccess.countries.size} ; items=${countryDataStateSuccess.countries}"
+            )
+
+            return@withContext countryDataStateSuccess
+
         } catch (e: SQLiteException) {
-            countryDataStateError = getErrorState(e)
+            val countryDataStateError = getErrorState(e)
 
             Log.d("test1", "LocalRepository: SQLiteException")
+
+            return@withContext countryDataStateError
         }
-
-        if (countryDataStateSuccess != null)
-            return countryDataStateSuccess
-
-        return countryDataStateError!!
     }
 
 
-    suspend fun saveAll(countries: List<CountryModel>) : CountryDataState {
+    suspend fun saveAll(dispatcher: CoroutineDispatcher = Dispatchers.IO,
+                        countries: List<CountryModel>) : CountryDataState
+        = withContext(dispatcher) {
 
-        var countryLocalDataError: CountryDataState.CountryDataStateError ? = null
+            val entities: List<CountryEntity> =
+                countries.mapNotNull {
+                    it.toCountryEntity()
+                }
 
-        val entities: List<CountryEntity> =
-            countries.mapNotNull {
-                it.toCountryEntity()
+            try {
+                countryDao.insertAll(entities)
+                Log.d("test1", "LocalRepository: inserted to db: $entities")
+
+                return@withContext CountryDataState.CountryDataStateSuccess(countries)
+            } catch (e: SQLiteException) {
+                val countryLocalDataError = getErrorState(e)
+                Log.d(
+                    "test1",
+                    "LocalRepository: insert error: ${countryLocalDataError::class.simpleName}"
+                )
+
+                return@withContext countryLocalDataError
             }
-
-        try {
-            countryDao.insertAll(entities)
-            Log.d("test1", "LocalRepository: inserted to db: $entities")
-        } catch (e: SQLiteException) {
-            countryLocalDataError = getErrorState(e)
-            Log.d("test1", "LocalRepository: insert error: ${countryLocalDataError::class.simpleName}")
-        }
-
-        if (countryLocalDataError != null)
-            return countryLocalDataError
-
-        return CountryDataState.CountryDataStateSuccess(countries)
     }
 
     private fun getErrorState(e: SQLiteException) : CountryDataState.CountryDataStateError {
