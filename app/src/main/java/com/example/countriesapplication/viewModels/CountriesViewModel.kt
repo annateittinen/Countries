@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,16 +25,16 @@ class CountriesViewModel @Inject constructor(
 
     fun getAll(page: Int = 1) {
 
-        viewModelScope.launch(context = Dispatchers.IO) {
+        viewModelScope.launch{
 
-            var countryDataState: CountryDataState = countriesRepository.getAll(page)
+            var countryDataState: CountryDataState = countriesRepository.getAll(page = page)
 
             Log.d(
                 "test1",
                 "CountriesViewModel: called countriesRepository.getAll: countriesFromRepo size=${countryDataState.countries.size} items=${countryDataState.countries}"
             )
 
-            _countryDataState.emit(countryDataState)
+            _countryDataState.update { countryDataState }
         }
     }
 }

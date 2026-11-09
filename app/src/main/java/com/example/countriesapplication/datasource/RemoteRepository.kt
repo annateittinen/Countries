@@ -5,6 +5,9 @@ import com.example.countriesapplication.model.CountryDataState
 import com.example.countriesapplication.model.CountryModel
 import com.example.countriesapplication.network.CountryApiService
 import com.example.countriesapplication.utils.toCountryModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -14,46 +17,39 @@ import javax.inject.Singleton
 class RemoteRepository @Inject constructor(
     private val apiService: CountryApiService,
 ) {
-    suspend fun getAll(page: Int = 1): CountryDataState {
-
-        var countryDataStateSuccess: CountryDataState.CountryDataStateSuccess? = null
-        var countryRemoteDataRetrieveError: CountryDataState.CountryDataStateError? = null
+    suspend fun getAll(dispatcher: CoroutineDispatcher = Dispatchers.IO,
+                       page: Int = 1): CountryDataState
+        = withContext(dispatcher) {
 
         try {
 
             // fetch from network
             var responseCountries = apiService.getCountries(page)
 
-            //var responseCountries: ResponseCountries = apiService.getCountries(page)
             val countries: List<CountryModel> = responseCountries.data.mapNotNull {
                 it.toCountryModel()
             }
-            countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
+            var countryDataStateSuccess = CountryDataState.CountryDataStateSuccess(countries)
 
             Log.d("test1", "RemoteRepository: responseCountries= $responseCountries")
+
+            return@withContext countryDataStateSuccess
         } catch (e: Exception) {
+            Log.d("test1", "RemoteRepository: error= ${e::class.simpleName}")
+
             when (e) {
                 is HttpException -> {
-                    countryRemoteDataRetrieveError =
-                        CountryDataState.CountryDataStateError.CountryDataHttpExceptionError()
+                    return@withContext CountryDataState.CountryDataStateError.CountryDataHttpExceptionError()
                 }
 
                 is IOException -> {
-                    countryRemoteDataRetrieveError =
-                        CountryDataState.CountryDataStateError.CountryDataIOExceptionError()
+                    return@withContext CountryDataState.CountryDataStateError.CountryDataIOExceptionError()
                 }
 
                 else -> {
-                    countryRemoteDataRetrieveError =
-                        CountryDataState.CountryDataStateError.CountryDataExceptionError()
+                    return@withContext CountryDataState.CountryDataStateError.CountryDataExceptionError()
                 }
             }
         }
-
-        if (countryDataStateSuccess != null)
-            return countryDataStateSuccess
-
-        Log.d("test1", "RemoteRepository: error= ${countryRemoteDataRetrieveError!!::class.simpleName}")
-        return countryRemoteDataRetrieveError!!
     }
 }
