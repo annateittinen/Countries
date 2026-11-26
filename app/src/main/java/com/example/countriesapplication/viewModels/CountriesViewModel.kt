@@ -23,6 +23,12 @@ class CountriesViewModel @Inject constructor(
         CountryDataState.CountryDataStateSuccess())
     val countryDataState: StateFlow<CountryDataState> = _countryDataState.asStateFlow()
 
+    init {
+        Log.d("test1", "CountriesViewModel init")
+        getAll()
+    }
+
+
     fun getAll(page: Int = 1) {
 
         viewModelScope.launch{
