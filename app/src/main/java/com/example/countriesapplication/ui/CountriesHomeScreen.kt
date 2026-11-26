@@ -17,22 +17,74 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.countriesapplication.R
 import com.example.countriesapplication.model.CountryDataState
 import com.example.countriesapplication.model.CountryModel
+import com.example.countriesapplication.ui.theme.CountriesApplicationTheme
 import com.example.countriesapplication.viewModels.CountriesViewModel
+
+object CountryAppTitleDefaults {
+
+    @Composable
+    fun styleTitle() : TextStyle = CountriesApplicationTheme.typography.mainTitle
+
+    @Composable
+    fun colorTitle(): Color = CountriesApplicationTheme.colors.textPrimary
+}
+
+object CountryBoxDefaults {
+
+    @Immutable
+    data class BoxColors(
+        val colorBoxBackground: Color,
+        val colorBoxCountryNameLabel: Color,
+        val colorBoxCountryDataFieldLabel: Color,
+        val colorBoxCountryDataFieldValue: Color,
+    )
+
+    @Immutable
+    data class BoxTypograhy(
+        val styleBoxCountryNameLabel: TextStyle,
+        val styleBoxFieldLabel: TextStyle,
+        val styleBoxFieldValue: TextStyle,
+    )
+
+    @Composable
+    fun colors(
+        colorBoxBackground: Color = CountriesApplicationTheme.colors.cardContainer,
+        colorBoxCountryNameLabel: Color = CountriesApplicationTheme.colors.textPrimary,
+        colorBoxCountryDataFieldLabel: Color = CountriesApplicationTheme.colors.textPrimary,
+        colorBoxCountryDataFieldValue: Color = CountriesApplicationTheme.colors.textPrimary,
+    ) : BoxColors = BoxColors(
+        colorBoxBackground,
+        colorBoxCountryNameLabel,
+        colorBoxCountryDataFieldLabel,
+        colorBoxCountryDataFieldValue,
+    )
+
+    @Composable
+    fun typography(
+        styleBoxCountryNameLabel : TextStyle = CountriesApplicationTheme.typography.countryNameTitle,
+        styleBoxFieldLabel: TextStyle = CountriesApplicationTheme.typography.countryFieldLabel,
+        styleBoxFieldValue: TextStyle = CountriesApplicationTheme.typography.countryFieldValue,
+    ) : BoxTypograhy = BoxTypograhy (
+        styleBoxCountryNameLabel,
+        styleBoxFieldLabel,
+        styleBoxFieldValue,
+    )
+
+}
 
 @Composable
 fun CountriesHomeScreen(modifier: Modifier = Modifier,
@@ -41,11 +93,6 @@ fun CountriesHomeScreen(modifier: Modifier = Modifier,
     val countryDataState =
         countriesViewModel.countryDataState.collectAsStateWithLifecycle(
             CountryDataState.CountryDataStateSuccess())
-
-    LaunchedEffect(Unit) {
-        Log.d("test1", "LaunchEffect")
-        countriesViewModel.getAll()
-    }
 
     val onclick: (CountryModel) -> Unit = {
         Log.d("test1", "clicked country: $it")
@@ -56,23 +103,26 @@ fun CountriesHomeScreen(modifier: Modifier = Modifier,
     CountriesHomeScreenContent(
         countryDataState.value.countries,
         modifier,
-        onclick)
+        boxColors = CountryBoxDefaults.colors(),
+        boxTypograhy = CountryBoxDefaults.typography(),
+        onclick = onclick)
 }
+
+
 
 @Composable
 fun CountriesHomeScreenContent(
     countries: List<CountryModel> = emptyList(),
     modifier: Modifier = Modifier,
-    onclick: (CountryModel) -> Unit = {}
+    onclick: (CountryModel) -> Unit = {},
+    boxColors: CountryBoxDefaults.BoxColors = CountryBoxDefaults.colors(),
+    boxTypograhy: CountryBoxDefaults.BoxTypograhy = CountryBoxDefaults.typography(),
 ) {
 
     Log.d("test1", "CountriesHomeScreenContent: countries size=${countries.size} items=${countries}")
 
     Column(modifier = modifier
-        .background(color = Color.LightGray)
-        //.background(color = Color(156, 198, 235, 1)) //shade of blue
-        //.background(color = Color(80, 174, 232, 1)) //shade of blue
-        //.background(color = MaterialTheme.colorScheme.onPrimary)
+        .background(color = CountriesApplicationTheme.colors.background)
         .padding(10.dp)
         .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -81,7 +131,8 @@ fun CountriesHomeScreenContent(
         Text(
             modifier = modifier.width(300.dp),
             text = "Countries (${countries.size})",
-            fontSize = 30.sp
+            style = CountryAppTitleDefaults.styleTitle(),
+            color = CountryAppTitleDefaults.colorTitle(),
         )
 
         LazyColumn(
@@ -92,50 +143,11 @@ fun CountriesHomeScreenContent(
         ) {
             items(countries) {
                 key(it.name) {
-                    Column(modifier = modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .clickable{
-                            onclick(it) },
-                        verticalArrangement = Arrangement.spacedBy(5.dp),) {
-
-                        Row(modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = it.name,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.fillMaxHeight())
-                            Spacer(modifier = Modifier.size(5.dp))
-
-                            // coil is backed by Kotlin coroutines to load image away from main thread
-                            AsyncImage(
-                                model= "https://flagsapi.com/${it.alpha2Code}/flat/64.png",
-                                contentDescription = "flag image for ${it.name}",
-                                alignment = Alignment.CenterStart,
-                                modifier = Modifier.fillMaxSize()
-                                    .weight(1f),
-                                error = painterResource(R.drawable.ic_launcher_background),
-                                fallback = painterResource(R.drawable.ic_launcher_background)
-                            )
-                        }
-
-                        CountryDataField(field = "population", value = it.population.toString())
-
-                        CountryDataField(field = "region", value = it.region)
-
-                        CountryDataField(field = "capital", value = it.capital)
-
-                        CountryDataField(field = "language", value = it.language.joinToString(", "))
-
-                        CountryDataField(field = "subregion", value = it.subregion)
-
-                        CountryDataField(field = "callingCodes", value = it.callingCodes.joinToString(", "))
-
-                        CountryDataField(field = "currencies", value = it.currencies.joinToString(", "))
-
-                        CountryDataField(field = "nativeName", value = it.nativeName)
-                    }
+                    CountryBox(modifier = modifier,
+                        onclick = onclick,
+                        boxColors = boxColors,
+                        boxTypograhy = boxTypograhy,
+                        countryModel = it)
                 }
             }
         }
@@ -143,7 +155,67 @@ fun CountriesHomeScreenContent(
 }
 
 @Composable
+private fun CountryBox(
+    modifier: Modifier = Modifier,
+    onclick: (CountryModel) -> Unit = {},
+    boxColors: CountryBoxDefaults.BoxColors = CountryBoxDefaults.colors(),
+    boxTypograhy: CountryBoxDefaults.BoxTypograhy = CountryBoxDefaults.typography(),
+    countryModel: CountryModel,
+) {
+    Column(modifier = modifier
+        .fillMaxWidth()
+        .fillMaxHeight()
+        .background(color = boxColors.colorBoxBackground)
+        .clickable {
+            onclick(countryModel)
+        },
+        verticalArrangement = Arrangement.spacedBy(5.dp),) {
+
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically) {
+            Text(text = countryModel.name,
+                style = boxTypograhy.styleBoxCountryNameLabel,
+                color = boxColors.colorBoxCountryNameLabel,
+                modifier = Modifier.fillMaxHeight())
+            Spacer(modifier = Modifier.size(5.dp))
+
+            // coil is backed by Kotlin coroutines to load image away from main thread
+            AsyncImage(
+                model= "https://flagsapi.com/${countryModel.alpha2Code}/flat/64.png",
+                contentDescription = "flag image for ${countryModel.name}",
+                alignment = Alignment.CenterStart,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                error = painterResource(R.drawable.ic_launcher_background),
+                fallback = painterResource(R.drawable.ic_launcher_background)
+            )
+        }
+
+        CountryDataField(field = "population", value = countryModel.population.toString())
+
+        CountryDataField(field = "region", value = countryModel.region)
+
+        CountryDataField(field = "capital", value = countryModel.capital)
+
+        CountryDataField(field = "language", value = countryModel.language.joinToString(", "))
+
+        CountryDataField(field = "subregion", value = countryModel.subregion)
+
+        CountryDataField(field = "callingCodes", value = countryModel.callingCodes.joinToString(", "))
+
+        CountryDataField(field = "currencies", value = countryModel.currencies.joinToString(", "))
+
+        CountryDataField(field = "nativeName", value = countryModel.nativeName)
+    }
+}
+
+
+@Composable
 private fun CountryDataField(modifier: Modifier = Modifier,
+                             boxColors: CountryBoxDefaults.BoxColors = CountryBoxDefaults.colors(),
+                             boxTypograhy: CountryBoxDefaults.BoxTypograhy = CountryBoxDefaults.typography(),
                              field: String,
                              value: String) {
     Row(
@@ -152,12 +224,14 @@ private fun CountryDataField(modifier: Modifier = Modifier,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Text(text = "$field:",
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,)
+            style = boxTypograhy.styleBoxFieldLabel,
+            color = boxColors.colorBoxCountryDataFieldLabel,
+            )
 
         Text(text = "$value",
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,)
+            style = boxTypograhy.styleBoxFieldValue,
+            color = boxColors.colorBoxCountryDataFieldValue,
+            )
     }
 
 }
